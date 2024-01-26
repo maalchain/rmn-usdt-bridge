@@ -17,7 +17,7 @@ CORS(app)
 # MongoDB Configuration
 app.config[
     "MONGO_URI"
-] = "mongodb+srv://gcexnft:coin@cluster0.n9hs6tn.mongodb.net/MAALBridge?retryWrites=true&w=majority"
+] = os.environ.get("MONGODB_URI") + "?retryWrites=true&w=majority"
 mongo = PyMongo(app)
 
 with open("EURT.json", "r") as f:
