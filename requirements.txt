@@ -1,0 +1,7 @@
+Flask
+Flask-CORS
+web3
+requests
+Flask-PyMongo
+gunicorn
+python-dotenv
