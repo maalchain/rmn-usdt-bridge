@@ -181,8 +181,20 @@ def handle_transfer():
 
     token_amount = token_transfer[0]["args"]["value"]
 
+    # def get_euro_price():
+    #     headers = {"x-access-token": XAU_AUTH_TOKEN, "Content-Type": TYPE}
+    #     response = requests.get(XAU_URL, headers=headers)
+    #     if response.status_code == 200:
+    #         return float(response.json().get("price", 0))
+    #     else:
+    #         return None
+
+    # xau_price = get_gold_price()
+    # if not xau_price:
+    #     return jsonify({"error": "Failed to fetch XAU price"}), 500
+
     # Calculate tokens to send
-    transfer_amount = token_amount
+    transfer_amount = token_amount * 1.085
     # Account derivation from private key
     account = Account.from_key(PRIVATE_KEY_TESTING)
     address = account.address
@@ -224,15 +236,15 @@ def handle_transfer():
         signed_txn = w3.eth.account.sign_transaction(txn_data, PRIVATE_KEY_TESTING)
         tx_sent = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
 
-        # After successfully transferring XAUS, update the database
+        # After successfully transferring USDT, update the database
         mongo.db.transactions.update_one(
             {"txHash": data["txHash"]},
             {
                 "$set": {
                     "processed": True,
-                    "EurtTransferTxHash": tx_sent.hex(),
+                    "ReceiptHash": tx_sent.hex(),
                     "sentRMN": str(token_amount),
-                    "receivedEURT": str(transfer_amount),
+                    "receivedUSDT": str(transfer_amount),
                 }
             },
         )
@@ -268,8 +280,10 @@ def handle_transfer():
             "value": 0,  # for ERC20 transfer, value is 0
         }
 
+        rmn_transfer_amount = transfer_amount / 1.085
+
         txn_data = rmn_contract.functions.transfer(
-            data.get("from"), int(transfer_amount)
+            data.get("from"), int(rmn_transfer_amount)
         ).build_transaction(txn_parameters)
         signed_txn = w3.eth.account.sign_transaction(txn_data, PRIVATE_KEY_TESTING)
         tx_sent = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
@@ -280,9 +294,9 @@ def handle_transfer():
             {
                 "$set": {
                     "processed": True,
-                    "EurtTransferTxHash": tx_sent.hex(),
-                    "sentRMN": str(token_amount),
-                    "receivedEURT": str(transfer_amount),
+                    "ReceiptHash": tx_sent.hex(),
+                    "sentUSDT": str(token_amount),
+                    "receivedRMN": str(transfer_amount),
                 }
             },
         )
