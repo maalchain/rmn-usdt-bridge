@@ -193,8 +193,8 @@ def handle_transfer():
         # Extract the price
         eurt_price = data["tether-eurt"]["usd"]
     else:
-    print(f"Failed to fetch EURT price: HTTP {response.status_code}")
-    # Handle the error appropriately (e.g., retry the request, use a default value, or abort the operation)
+        print(f"Failed to fetch EURT price: HTTP {response.status_code}")
+        # Handle the error appropriately (e.g., retry the request, use a default value, or abort the operation)
 
     # Now, check if eurt_price has been set
     if eurt_price is None:
