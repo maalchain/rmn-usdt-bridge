@@ -32,6 +32,7 @@ PRIVATE_KEY = os.environ.get("PRIVATE_KEY")
 PRIVATE_KEY_TESTING = os.environ.get("PRIVATE_KEY_TESTING")
 TYPE = os.environ.get("type")
 EURT_ETH_CONTRACT = os.environ.get('ETH_EURT_CONTRACT_ADDRESS')
+BINANCE_USDT_CONTRACT = os.environ.get('BSC_USDT_CONTRACT_ADDRESS')
 EURT_SEPOLIA_CONTRACT = os.environ.get('SEPOLIA_USDT_CONTRACT_ADDRESS')
 USDT_CONTRACT_ADDRESSES = {
     "Ethereum": os.environ.get("ETH_USDT_CONTRACT_ADDRESS"),
@@ -90,11 +91,11 @@ def handle_transfer():
         )
 
     # Check if the "to" address matches the specified TARGET_ADDRESS
-    if data.get("to") != TARGET_ADDRESS_TESTNET:
+    if data.get("to") != TARGET_ADDRESS:
         return (
             jsonify(
                 {
-                    "error": "Invalid target address. Should deposit Asset to {TARGET_ADDRESS_TESTNET}"
+                    "error": "Invalid target address. Should deposit Asset to {TARGET_ADDRESS}"
                 }
             ),
             400,
@@ -126,8 +127,8 @@ def handle_transfer():
         w3.middleware_onion.inject(
             geth_poa_middleware, layer=0
         )  # Middleware for MaalChain
-    elif data["network"] == "MaalChain Mainnet":
-        w3 = Web3(Web3.HTTPProvider("https://rpc1.maalscan.io"))
+    elif data["network"] == "MaalChain":
+        w3 = Web3(Web3.HTTPProvider("https://node1-mainnet.maalscan.io"))
         w3.middleware_onion.inject(
             geth_poa_middleware, layer=0
         )  # Middleware for Polygon
@@ -139,20 +140,20 @@ def handle_transfer():
     if not tx_receipt:
         return jsonify({"error": "Invalid txHash"}), 400
     
-    if data["network"] == "Sepolia":
+    if data["network"] == "Binance Smart Chain":
         # Check EURT transfer value in the transaction
         usdt_contract = w3.eth.contract(
-            address=USDT_CONTRACT_ADDRESSES[network], abi=eurt_abi
+            address=BINANCE_USDT_CONTRACT, abi=eurt_abi
         )
         token_transfer = usdt_contract.events.Transfer().process_receipt(tx_receipt)
 
         if not token_transfer or len(token_transfer) == 0:
             return jsonify({"error": "No USDT transfer found in the transaction"}), 400
 
-    if data["network"] == "MaalChain Testnet":
+    if data["network"] == "MaalChain":
         # Check RMN transfer value in the transaction
         rmn_contract = w3.eth.contract(
-            address=RMN_CONTRACT_ADDRESS_TESTNET, abi=rmn_abi
+            address=RMN_CONTRACT_ADDRESS, abi=rmn_abi
             )
         token_transfer = rmn_contract.events.Transfer().process_receipt(tx_receipt)
         
@@ -171,7 +172,7 @@ def handle_transfer():
         )
 
     # Check if the Asset was transferred to the target address specified in the POST query
-    if token_transfer[0]["args"]["to"] != TARGET_ADDRESS_TESTNET:
+    if token_transfer[0]["args"]["to"] != TARGET_ADDRESS:
         return (
             jsonify(
                 {
@@ -204,20 +205,20 @@ def handle_transfer():
     # Calculate tokens to send
     transfer_amount = token_amount
     # Account derivation from private key
-    account = Account.from_key(PRIVATE_KEY_TESTING)
+    account = Account.from_key(PRIVATE_KEY)
     address = account.address
     
-    if data["network"] == "MaalChain Testnet":
+    if data["network"] == "MaalChain":
     
         # Switch to Ethereum Chain for EURT Transfer
-        w3 = Web3(Web3.HTTPProvider("https://eth-sepolia.public.blastapi.io"))
+        # w3 = Web3(Web3.HTTPProvider("https://eth-sepolia.public.blastapi.io"))
 
         # Switch to your custom EVM chain for RMN transfer
-        # w3 = Web3(Web3.HTTPProvider("https://node1-mainnet.maalscan.io"))
-        # w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        w3 = Web3(Web3.HTTPProvider("https://bsc-dataseed.binance.org"))
+        w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
-        # Create a contract instance for XAUS using the w3_custom instance
-        eurt_contract = w3.eth.contract(address=EURT_SEPOLIA_CONTRACT, abi=eurt_abi)
+        # Create a contract instance for USDT using the w3_custom instance
+        eurt_contract = w3.eth.contract(address=BINANCE_USDT_CONTRACT, abi=eurt_abi)
 
         # Get the nonce for the transaction
         nonce = w3.eth.get_transaction_count(address)
@@ -231,9 +232,9 @@ def handle_transfer():
         )
         # Build the transfer function for the XAUS token transfer
         txn_parameters = {
-            "chainId": 11155111,
+            "chainId": 56,
             "gas": 210000,
-            "gasPrice": w3.to_wei("15", "gwei"),
+            "gasPrice": w3.to_wei("4", "gwei"),
             "nonce": nonce,
             "value": 0,  # for ERC20 transfer, value is 0
         }
@@ -243,7 +244,7 @@ def handle_transfer():
         txn_data = eurt_contract.functions.transfer(
             data.get("from"), int(transfer_amount)
         ).build_transaction(txn_parameters)
-        signed_txn = w3.eth.account.sign_transaction(txn_data, PRIVATE_KEY_TESTING)
+        signed_txn = w3.eth.account.sign_transaction(txn_data, PRIVATE_KEY)
         tx_sent = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
 
         # After successfully transferring USDT, update the database
@@ -260,16 +261,16 @@ def handle_transfer():
         )
 
         return jsonify(
-            {"message": "EURT transfer successful", "EurtTransferTxHash": tx_sent.hex()}
+            {"message": "USDT transfer successful", "USDTTransferTxHash": tx_sent.hex()}
         )
         
-    if data["network"] == "Sepolia":
+    if data["network"] == "Binance Smart Chain":
         # Switch to your custom EVM chain for RMN transfer
-        w3 = Web3(Web3.HTTPProvider("https://node1.maalscan.io"))
+        w3 = Web3(Web3.HTTPProvider("https://node1-mainnet.maalscan.io"))
         w3.middleware_onion.inject(geth_poa_middleware, layer=0)
 
         # Create a contract instance for XAUS using the w3_custom instance
-        rmn_contract = w3.eth.contract(address=RMN_CONTRACT_ADDRESS_TESTNET, abi=rmn_abi)
+        rmn_contract = w3.eth.contract(address=RMN_CONTRACT_ADDRESS, abi=rmn_abi)
 
         # Get the nonce for the transaction
         nonce = w3.eth.get_transaction_count(address)
@@ -283,7 +284,7 @@ def handle_transfer():
         )
         # Build the transfer function for the XAUS token transfer
         txn_parameters = {
-            "chainId": 7860,
+            "chainId": 786,
             "gas": 210000,
             "gasPrice": w3.to_wei("15", "gwei"),
             "nonce": nonce,
@@ -295,7 +296,7 @@ def handle_transfer():
         txn_data = rmn_contract.functions.transfer(
             data.get("from"), int(rmn_transfer_amount)
         ).build_transaction(txn_parameters)
-        signed_txn = w3.eth.account.sign_transaction(txn_data, PRIVATE_KEY_TESTING)
+        signed_txn = w3.eth.account.sign_transaction(txn_data, PRIVATE_KEY)
         tx_sent = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
 
         # After successfully transferring XAUS, update the database
