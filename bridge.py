@@ -183,7 +183,7 @@ def handle_transfer():
 
     euro_price_url = "https://pro-api.coingecko.com/api/v3/simple/price?ids=tether-eurt&vs_currencies=usd&x_cg_pro_api_key=CG-VTWbFPyR2KdGKX9LPTiPFBWW"
     # Make a GET request to the API
-    response = requests.get(url)
+    response = requests.get(euro_price_url)
     
     # Check if the request was successful
     if response.status_code == 200:
