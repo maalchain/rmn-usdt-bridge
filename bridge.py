@@ -243,7 +243,7 @@ def handle_transfer():
         usdt_amount_to_transfer = transfer_amount * eurt_price
 
         txn_data = eurt_contract.functions.transfer(
-            data.get("from"), int(transfer_amount)
+            data.get("from"), int(usdt_amount_to_transfer)
         ).build_transaction(txn_parameters)
         signed_txn = w3.eth.account.sign_transaction(txn_data, PRIVATE_KEY)
         tx_sent = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
@@ -256,7 +256,7 @@ def handle_transfer():
                     "processed": True,
                     "ReceiptHash": tx_sent.hex(),
                     "sentRMN": str(token_amount),
-                    "receivedUSDT": str(transfer_amount),
+                    "receivedUSDT": str(usdt_amount_to_transfer),
                 }
             },
         )
@@ -308,7 +308,7 @@ def handle_transfer():
                     "processed": True,
                     "ReceiptHash": tx_sent.hex(),
                     "sentUSDT": str(token_amount),
-                    "receivedRMN": str(transfer_amount),
+                    "receivedRMN": str(rmn_transfer_amount),
                 }
             },
         )
