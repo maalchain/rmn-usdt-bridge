@@ -192,7 +192,8 @@ def handle_transfer():
     if response.status_code == 200:
         data = response.json()
         # Extract the price
-        eurt_price = data["tether-eurt"]["usd"]
+        eurt_price_fetch = data["tether-eurt"]["usd"]
+    eurt_price = eurt_price_fetch
     else:
         print(f"Failed to fetch EURT price: HTTP {response.status_code}")
         # Handle the error appropriately (e.g., retry the request, use a default value, or abort the operation)
