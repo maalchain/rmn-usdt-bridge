@@ -47,6 +47,7 @@ AUTH_TOKEN = os.environ.get("AUTH_TOKEN")
 # ALLOWED_DOMAIN = "https://maalbridge.netlify.app"
 TARGET_ADDRESS_TESTNET = os.environ.get('TARGET_ADDRESS_TESTNET')
 TARGET_ADDRESS = os.environ.get('TARGET_ADDRESS')
+eurt_price = None;
 
 
 # @app.before_request
@@ -191,6 +192,14 @@ def handle_transfer():
         data = response.json()
         # Extract the price
         eurt_price = data["tether-eurt"]["usd"]
+    else:
+    print(f"Failed to fetch EURT price: HTTP {response.status_code}")
+    # Handle the error appropriately (e.g., retry the request, use a default value, or abort the operation)
+
+    # Now, check if eurt_price has been set
+    if eurt_price is None:
+        # Handle the case where eurt_price could not be fetched
+        return jsonify({"error": "Unable to fetch EURT price"}), 500
 
     # Calculate tokens to send
     transfer_amount = token_amount
