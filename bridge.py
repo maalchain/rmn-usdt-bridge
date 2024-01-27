@@ -48,7 +48,7 @@ AUTH_TOKEN = os.environ.get("AUTH_TOKEN")
 # ALLOWED_DOMAIN = "https://maalbridge.netlify.app"
 TARGET_ADDRESS_TESTNET = os.environ.get('TARGET_ADDRESS_TESTNET')
 TARGET_ADDRESS = os.environ.get('TARGET_ADDRESS')
-eurt_price = int(1.085)
+eurt_price = 1.085
 
 
 # @app.before_request
