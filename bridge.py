@@ -181,20 +181,18 @@ def handle_transfer():
 
     token_amount = token_transfer[0]["args"]["value"]
 
-    # def get_euro_price():
-    #     headers = {"x-access-token": XAU_AUTH_TOKEN, "Content-Type": TYPE}
-    #     response = requests.get(XAU_URL, headers=headers)
-    #     if response.status_code == 200:
-    #         return float(response.json().get("price", 0))
-    #     else:
-    #         return None
-
-    # xau_price = get_gold_price()
-    # if not xau_price:
-    #     return jsonify({"error": "Failed to fetch XAU price"}), 500
+    euro_price_url = "https://pro-api.coingecko.com/api/v3/simple/price?ids=tether-eurt&vs_currencies=usd&x_cg_pro_api_key=CG-VTWbFPyR2KdGKX9LPTiPFBWW"
+    # Make a GET request to the API
+    response = requests.get(url)
+    
+    # Check if the request was successful
+    if response.status_code == 200:
+        data = response.json()
+        # Extract the price
+        eurt_price = data["tether-eurt"]["usd"]
 
     # Calculate tokens to send
-    transfer_amount = token_amount * 1.085
+    transfer_amount = token_amount
     # Account derivation from private key
     account = Account.from_key(PRIVATE_KEY_TESTING)
     address = account.address
@@ -229,6 +227,8 @@ def handle_transfer():
             "nonce": nonce,
             "value": 0,  # for ERC20 transfer, value is 0
         }
+
+        usdt_amount_to_transfer = transfer_amount * eurt_price
 
         txn_data = eurt_contract.functions.transfer(
             data.get("from"), int(transfer_amount)
@@ -280,7 +280,7 @@ def handle_transfer():
             "value": 0,  # for ERC20 transfer, value is 0
         }
 
-        rmn_transfer_amount = transfer_amount / 1.085
+        rmn_transfer_amount = transfer_amount / eurt_price
 
         txn_data = rmn_contract.functions.transfer(
             data.get("from"), int(rmn_transfer_amount)
