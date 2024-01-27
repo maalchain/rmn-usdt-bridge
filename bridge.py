@@ -48,7 +48,7 @@ AUTH_TOKEN = os.environ.get("AUTH_TOKEN")
 # ALLOWED_DOMAIN = "https://maalbridge.netlify.app"
 TARGET_ADDRESS_TESTNET = os.environ.get('TARGET_ADDRESS_TESTNET')
 TARGET_ADDRESS = os.environ.get('TARGET_ADDRESS')
-eurt_price = None;
+eurt_price = int(1.085)
 
 
 # @app.before_request
@@ -184,24 +184,24 @@ def handle_transfer():
 
     token_amount = token_transfer[0]["args"]["value"]
 
-    euro_price_url = "https://pro-api.coingecko.com/api/v3/simple/price?ids=tether-eurt&vs_currencies=usd&x_cg_pro_api_key=" + "CG_API"
-    # Make a GET request to the API
-    response = requests.get(euro_price_url)
+    # euro_price_url = "https://pro-api.coingecko.com/api/v3/simple/price?ids=tether-eurt&vs_currencies=usd&x_cg_pro_api_key=" + "CG_API"
+    # # Make a GET request to the API
+    # response = requests.get(euro_price_url)
     
-    # Check if the request was successful
-    if response.status_code == 200:
-        data = response.json()
-        # Extract the price
-        eurt_price_fetch = data["tether-eurt"]["usd"]
-        eurt_price = eurt_price_fetch
-    else:
-        print(f"Failed to fetch EURT price: HTTP {response.status_code}")
-        # Handle the error appropriately (e.g., retry the request, use a default value, or abort the operation)
+    # # Check if the request was successful
+    # if response.status_code == 200:
+    #     data = response.json()
+    #     # Extract the price
+    #     eurt_price_fetch = data["tether-eurt"]["usd"]
+    #     eurt_price = eurt_price_fetch
+    # else:
+    #     print(f"Failed to fetch EURT price: HTTP {response.status_code}")
+    #     # Handle the error appropriately (e.g., retry the request, use a default value, or abort the operation)
 
-    # Now, check if eurt_price has been set
-    if eurt_price is None:
-        # Handle the case where eurt_price could not be fetched
-        return jsonify({"error": "Unable to fetch EURT price"}), 500
+    # # Now, check if eurt_price has been set
+    # if eurt_price is None:
+    #     # Handle the case where eurt_price could not be fetched
+    #     return jsonify({"error": "Unable to fetch EURT price"}), 500
 
     # Calculate tokens to send
     transfer_amount = token_amount
