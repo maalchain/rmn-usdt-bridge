@@ -184,7 +184,7 @@ def handle_transfer():
 
     token_amount = token_transfer[0]["args"]["value"]
 
-    euro_price_url = "https://pro-api.coingecko.com/api/v3/simple/price?ids=tether-eurt&vs_currencies=usd&x_cg_pro_api_key={CG_API}"
+    euro_price_url = "https://pro-api.coingecko.com/api/v3/simple/price?ids=tether-eurt&vs_currencies=usd&x_cg_pro_api_key=" + "{CG_API}"
     # Make a GET request to the API
     response = requests.get(euro_price_url)
     
