@@ -15,9 +15,7 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB Configuration
-app.config[
-    "MONGO_URI"
-] = os.environ.get("MONGODB_URI") + "?retryWrites=true&w=majority"
+app.config["MONGO_URI"] = os.environ.get("MONGODB_URI") + "?retryWrites=true&w=majority"
 mongo = PyMongo(app)
 
 with open("EURT.json", "r") as f:
@@ -31,9 +29,9 @@ WEB3_INFURA_PROJECT_ID = os.environ.get("WEB3_INFURA_PROJECT_ID")
 PRIVATE_KEY = os.environ.get("PRIVATE_KEY")
 PRIVATE_KEY_TESTING = os.environ.get("PRIVATE_KEY_TESTING")
 TYPE = os.environ.get("type")
-EURT_ETH_CONTRACT = os.environ.get('ETH_EURT_CONTRACT_ADDRESS')
-BINANCE_USDT_CONTRACT = os.environ.get('BSC_USDT_CONTRACT_ADDRESS')
-EURT_SEPOLIA_CONTRACT = os.environ.get('SEPOLIA_USDT_CONTRACT_ADDRESS')
+EURT_ETH_CONTRACT = os.environ.get("ETH_EURT_CONTRACT_ADDRESS")
+BINANCE_USDT_CONTRACT = os.environ.get("BSC_USDT_CONTRACT_ADDRESS")
+EURT_SEPOLIA_CONTRACT = os.environ.get("SEPOLIA_USDT_CONTRACT_ADDRESS")
 USDT_CONTRACT_ADDRESSES = {
     "Ethereum": os.environ.get("ETH_USDT_CONTRACT_ADDRESS"),
     "Sepolia": os.environ.get("SEPOLIA_USDT_CONTRACT_ADDRESS"),
@@ -41,13 +39,13 @@ USDT_CONTRACT_ADDRESSES = {
     "Binance Smart Chain": os.environ.get("BSC_USDT_CONTRACT_ADDRESS"),
     "Polygon": os.environ.get("POLYGON_USDT_CONTRACT_ADDRESS"),
 }
-RMN_CONTRACT_ADDRESS_TESTNET = os.environ.get('RMN_CONTRACT_ADDRESS_TESTNET')
-RMN_CONTRACT_ADDRESS = os.environ.get('RMN_CONTRACT_ADDRESS')
+RMN_CONTRACT_ADDRESS_TESTNET = os.environ.get("RMN_CONTRACT_ADDRESS_TESTNET")
+RMN_CONTRACT_ADDRESS = os.environ.get("RMN_CONTRACT_ADDRESS")
 AUTH_TOKEN = os.environ.get("AUTH_TOKEN")
 # ALLOWED_DOMAIN="127.0.0.1"
 # ALLOWED_DOMAIN = "https://maalbridge.netlify.app"
-TARGET_ADDRESS_TESTNET = os.environ.get('TARGET_ADDRESS_TESTNET')
-TARGET_ADDRESS = os.environ.get('TARGET_ADDRESS')
+TARGET_ADDRESS_TESTNET = os.environ.get("TARGET_ADDRESS_TESTNET")
+TARGET_ADDRESS = os.environ.get("TARGET_ADDRESS")
 eurt_price = 1.085
 
 
@@ -109,9 +107,7 @@ def handle_transfer():
             Web3.HTTPProvider(f"https://mainnet.infura.io/v3/{WEB3_INFURA_PROJECT_ID}")
         )
     elif data["network"] == "Sepolia":
-        w3 = Web3(
-            Web3.HTTPProvider(f"https://eth-sepolia.public.blastapi.io")
-        )
+        w3 = Web3(Web3.HTTPProvider(f"https://eth-sepolia.public.blastapi.io"))
     elif data["network"] == "Mantle":
         w3 = Web3(Web3.HTTPProvider("https://rpc.testnet.mantle.xyz"))
     elif data["network"] == "Binance Smart Chain":
@@ -139,12 +135,10 @@ def handle_transfer():
     tx_receipt = w3.eth.get_transaction_receipt(data["txHash"])
     if not tx_receipt:
         return jsonify({"error": "Invalid txHash"}), 400
-    
+
     if data["network"] == "Binance Smart Chain":
         # Check EURT transfer value in the transaction
-        usdt_contract = w3.eth.contract(
-            address=BINANCE_USDT_CONTRACT, abi=eurt_abi
-        )
+        usdt_contract = w3.eth.contract(address=BINANCE_USDT_CONTRACT, abi=eurt_abi)
         token_transfer = usdt_contract.events.Transfer().process_receipt(tx_receipt)
 
         if not token_transfer or len(token_transfer) == 0:
@@ -152,11 +146,9 @@ def handle_transfer():
 
     if data["network"] == "MaalChain":
         # Check RMN transfer value in the transaction
-        rmn_contract = w3.eth.contract(
-            address=RMN_CONTRACT_ADDRESS, abi=rmn_abi
-            )
+        rmn_contract = w3.eth.contract(address=RMN_CONTRACT_ADDRESS, abi=rmn_abi)
         token_transfer = rmn_contract.events.Transfer().process_receipt(tx_receipt)
-        
+
         if not token_transfer or len(token_transfer) == 0:
             return jsonify({"error": "No RMN transfer found in the transaction"}), 400
 
@@ -187,7 +179,7 @@ def handle_transfer():
     # euro_price_url = "https://pro-api.coingecko.com/api/v3/simple/price?ids=tether-eurt&vs_currencies=usd&x_cg_pro_api_key=" + "CG_API"
     # # Make a GET request to the API
     # response = requests.get(euro_price_url)
-    
+
     # # Check if the request was successful
     # if response.status_code == 200:
     #     data = response.json()
@@ -208,9 +200,8 @@ def handle_transfer():
     # Account derivation from private key
     account = Account.from_key(PRIVATE_KEY)
     address = account.address
-    
+
     if data["network"] == "MaalChain":
-    
         # Switch to Ethereum Chain for EURT Transfer
         # w3 = Web3(Web3.HTTPProvider("https://eth-sepolia.public.blastapi.io"))
 
@@ -264,7 +255,7 @@ def handle_transfer():
         return jsonify(
             {"message": "USDT transfer successful", "USDTTransferTxHash": tx_sent.hex()}
         )
-        
+
     if data["network"] == "Binance Smart Chain":
         # Switch to your custom EVM chain for RMN transfer
         w3 = Web3(Web3.HTTPProvider("https://node1-mainnet.maalscan.io"))
@@ -317,9 +308,32 @@ def handle_transfer():
             {"message": "RMN transfer successful", "RMNTransferTxHash": tx_sent.hex()}
         )
 
+
 @app.route("/getTxDetails/<wallet>", methods=["POST"])
 def get_tx_details(wallet):
-    transactions = mongo.db.transactions.find({"from": wallet})
+    # Extract page and documentsPerPage from the POST request's body
+    data = request.get_json()
+    page = data.get("page", 1)
+    documentsPerPage = data.get("documentsPerPage", 3)
+
+    # Convert to integer and validate
+    try:
+        page = int(page)
+        documentsPerPage = int(documentsPerPage)
+    except ValueError:
+        return jsonify({"error": "Invalid pagination parameters"}), 400
+
+    # Ensure page and documentsPerPage are positive
+    if page < 1 or documentsPerPage < 1:
+        return jsonify({"error": "Pagination parameters must be positive"}), 400
+
+    # Query the database with pagination
+    transactions = (
+        mongo.db.transactions.find({"from": wallet})
+        .sort([("_id", -1)])
+        .skip((page - 1) * documentsPerPage)
+        .limit(documentsPerPage)
+    )
 
     # Convert each transaction's ObjectId to a string
     transactions_list = []
