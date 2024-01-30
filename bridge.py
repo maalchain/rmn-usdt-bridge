@@ -314,7 +314,7 @@ def get_tx_details(wallet):
     # Extract page and documentsPerPage from the POST request's body
     data = request.get_json()
     page = data.get("page", 1)
-    documentsPerPage = data.get("documentsPerPage", 3)
+    documentsPerPage = data.get("documentsPerPage", 5)
 
     # Convert to integer and validate
     try:
