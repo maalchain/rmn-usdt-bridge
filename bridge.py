@@ -111,7 +111,7 @@ def handle_transfer():
     elif data["network"] == "Mantle":
         w3 = Web3(Web3.HTTPProvider("https://rpc.testnet.mantle.xyz"))
     elif data["network"] == "Binance Smart Chain":
-        w3 = Web3(Web3.HTTPProvider("https://bsc-dataseed.binance.org"))
+        w3 = Web3(Web3.HTTPProvider("https://binance.llamarpc.com"))
         w3.middleware_onion.inject(geth_poa_middleware, layer=0)  # Middleware for BSC
     elif data["network"] == "Polygon":
         w3 = Web3(Web3.HTTPProvider("https://rpc-mainnet.matic.network"))
